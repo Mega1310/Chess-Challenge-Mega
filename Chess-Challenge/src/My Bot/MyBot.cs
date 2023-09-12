@@ -12,11 +12,61 @@ public class MyBot : IChessBot
     // Piece values: null, pawn, knight, bishop, rook, queen, king
     int[] pieceValues = { 0, 10, 30, 33, 50, 90, 1000 };
     private byte maxDepth = 3;
+
+    public enum GameState
+    {
+        Opening,
+        MiddleGame,
+        EndGame
+    }
+
+    private GameState currentGamestate = GameState.Opening;
+
     public Move Think(Board board, Timer timer)
     {
         Move[] allMoves = board.GetLegalMoves();
         Move moveToPlay = allMoves[0];
         int highestValue = 1337420;
+        int pieceCounter = 0;
+
+        foreach (ChessChallenge.API.PieceList pieces in board.GetAllPieceLists())
+        {
+            switch (pieces.TypeOfPieceInList)
+            {
+                case PieceType.None:
+                    break;
+                case PieceType.Pawn:
+                    break;
+                case PieceType.Knight:
+                    pieceCounter += pieces.Count;
+                    break;
+                case PieceType.Bishop:
+                    pieceCounter += pieces.Count;
+                    break;
+                case PieceType.Rook:
+                    pieceCounter += pieces.Count;
+                    break;
+                case PieceType.Queen:
+                    pieceCounter += pieces.Count;
+                    break;
+                case PieceType.King:
+                    break;
+            }
+        }
+        if (pieceCounter <= 4)
+        {
+            maxDepth = 4;
+            if(currentGamestate == GameState.Opening)
+            {
+                Console.WriteLine(board.IsWhiteToMove);
+                Console.WriteLine("Endgame");
+            }
+            currentGamestate = GameState.EndGame;
+        }
+        if(pieceCounter <= 2)
+        {
+            maxDepth = 5;
+        }
 
         /*
         foreach (Move move in allMoves)
@@ -78,15 +128,24 @@ public class MyBot : IChessBot
 
         if (board.IsInCheckmate())
         {
-            int factor = board.IsWhiteToMove ? 1 : -1;
-            return -1000 * factor;
-
+            int newFactor = board.IsWhiteToMove ? 1 : -1;
+            return -1000 * newFactor;
         }
         int eval = 0;
         foreach (ChessChallenge.API.PieceList pieces in board.GetAllPieceLists())
         {
             int factor = pieces.IsWhitePieceList ? 1 : -1;
             eval += pieceValues[(int)pieces.TypeOfPieceInList] * factor * pieces.Count;
+        }
+
+        switch (currentGamestate)
+        {
+            case GameState.Opening:
+                break;
+            case GameState.MiddleGame:
+                break;
+            case GameState.EndGame:
+                break;
         }
         return eval;
     }
