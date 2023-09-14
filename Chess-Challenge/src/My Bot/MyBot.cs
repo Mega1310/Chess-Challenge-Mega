@@ -14,8 +14,110 @@ public class MyBot : IChessBot
     private byte maxDepth = 4;
     private Random rnd = new Random();
 
-    
+    private int[][][] whiteValueBoard = new[]
+    {
+        //none
+        new []
+        {
+            new []{  0,  0,  0,  0,  0,  0,  0,  0},
+            new []{  0,  0,  0,  0,  0,  0,  0,  0},
+            new []{  0,  0,  0,  0,  0,  0,  0,  0},
+            new []{  0,  0,  0,  0,  0,  0,  0,  0},
+            new []{  0,  0,  0,  0,  0,  0,  0,  0},
+            new []{  0,  0,  0,  0,  0,  0,  0,  0},
+            new []{  0,  0,  0,  0,  0,  0,  0,  0},
+            new []{  0,  0,  0,  0,  0,  0,  0,  0}
+        },
+        //Pawn
+        new []
+        {
+            new []{  0,  0,  0,  0,  0,  0,  0,  0},
+            new []{ 50, 50, 50, 50, 50, 50, 50, 50},
+            new []{ 10, 10, 20, 30, 30, 20, 10, 10},
+            new []{  5,  5, 10, 25, 25, 10,  5,  5},
+            new []{  0,  0,  0, 20, 20,  0,  0,  0},
+            new []{  5, -5,-10,  0,  0,-10, -5,  5},
+            new []{  5, 10, 10,-20,-20, 10, 10,  5},
+            new []{  0,  0,  0,  0,  0,  0,  0,  0}
+        },
+        //Knight
+        new []
+        {
+            new []{-50,-40,-30,-30,-30,-30,-40,-50},
+            new []{-40,-20,  0,  0,  0,  0,-20,-40},
+            new []{-30,  0, 10, 15, 15, 10,  0,-30},
+            new []{-30,  5, 15, 20, 20, 15,  5,-30},
+            new []{-30,  0, 15, 20, 20, 15,  0,-30},
+            new []{-30,  5, 10, 15, 15, 10,  5,-30},
+            new []{-40,-20,  0,  5,  5,  0,-20,-40},
+            new []{-50,-40,-30,-30,-30,-30,-40,-50}
+        },
+        //Bishop
+        new []
+        {
+            new []{-20,-10,-10,-10,-10,-10,-10,-20},
+            new []{-10,  0,  0,  0,  0,  0,  0,-10},
+            new []{-10,  0,  5, 10, 10,  5,  0,-10},
+            new []{-10,  5,  5, 10, 10,  5,  5,-10},
+            new []{-10,  0, 10, 10, 10, 10,  0,-10},
+            new []{-10, 10, 10, 10, 10, 10, 10,-10},
+            new []{-10,  5,  0,  0,  0,  0,  5,-10},
+            new []{-20,-10,-10,-10,-10,-10,-10,-20}
+        },
+        //Rook
+        new[]
+        {
+            new []{  0,  0,  0,  0,  0,  0,  0,  0},
+            new []{  5, 10, 10, 10, 10, 10, 10,  5},
+            new []{ -5,  0,  0,  0,  0,  0,  0, -5},
+            new []{ -5,  0,  0,  0,  0,  0,  0, -5},
+            new []{ -5,  0,  0,  0,  0,  0,  0, -5},
+            new []{ -5,  0,  0,  0,  0,  0,  0, -5},
+            new []{ -5,  0,  0,  0,  0,  0,  0, -5},
+            new []{  0,  0,  0,  5,  5,  0,  0,  0}
+        },
+        //Queen
+        new[]
+        {
+            new []{-20,-10,-10, -5, -5,-10,-10,-20},
+            new []{-10,  0,  0,  0,  0,  0,  0,-10},
+            new []{-10,  0,  5,  5,  5,  5,  0,-10},
+            new []{ -5,  0,  5,  5,  5,  5,  0, -5},
+            new []{  0,  0,  5,  5,  5,  5,  0,  0},
+            new []{-10,  5,  5,  5,  5,  5,  0,-10},
+            new []{-10,  0,  5,  0,  0,  0,  0,-10},
+            new []{-20,-10,-10, -5, -5,-10,-10,-20}
+        },
+        //King
+        new[]
+        {
+            new []{-30,-40,-40,-50,-50,-40,-40,-30},
+            new []{-30,-40,-40,-50,-50,-40,-40,-30},
+            new []{-30,-40,-40,-50,-50,-40,-40,-30},
+            new []{-30,-40,-40,-50,-50,-40,-40,-30},
+            new []{-20,-30,-30,-40,-40,-30,-30,-20},
+            new []{-10,-20,-20,-20,-20,-20,-20,-10},
+            new []{ 20, 20,  0,  0,  0,  0, 20, 20},
+            new []{ 20, 30, 10,  0,  0, 10, 30, 20}
+        }
+    };
 
+    private int[][][] blackValueBoard;
+
+    public MyBot()
+    {
+        blackValueBoard = new[]
+        {
+            whiteValueBoard[0],
+            whiteValueBoard[1].Reverse().ToArray(),
+            whiteValueBoard[2],
+            whiteValueBoard[3].Reverse().ToArray(),
+            whiteValueBoard[4].Reverse().ToArray(),
+            whiteValueBoard[5],
+            whiteValueBoard[6].Reverse().ToArray(),
+        };
+    }
+    
     public enum GameState
     {
         Opening,
@@ -121,7 +223,7 @@ public class MyBot : IChessBot
         return moveToPlay;
     }
 
-
+    /*
     private int CalcMove(Board board, Move move, byte depthCounter)
     {
         board.MakeMove(move);
@@ -148,6 +250,7 @@ public class MyBot : IChessBot
         return output;
 
     }
+    */
 
     private int CalcMoveAlphaBeta(Board board, int alpha, int beta, int depthCounter) {
         if (depthCounter == maxDepth)
@@ -190,6 +293,7 @@ public class MyBot : IChessBot
             return bestMove;
         }
     }
+    /*
 
     private int EvaluateBoard(Board board)
     {
@@ -207,7 +311,10 @@ public class MyBot : IChessBot
         foreach (ChessChallenge.API.PieceList pieces in board.GetAllPieceLists())
         {
             int factor = pieces.IsWhitePieceList ? 1 : -1;
+            int tmpEval = 0;
+            
             eval += pieceValues[(int)pieces.TypeOfPieceInList] * factor * pieces.Count;
+
         }
 
         switch (currentGamestate)
@@ -221,4 +328,39 @@ public class MyBot : IChessBot
         }
         return eval;
     }
+    */
+
+    private int EvaluateBoard(Board board)
+    {
+        
+        if (board.IsInCheckmate())
+        {
+            int newFactor = board.IsWhiteToMove ? 1 : -1;
+            return -10000 * newFactor;
+        }
+        int eval = 0;
+        foreach (ChessChallenge.API.PieceList pieces2 in board.GetAllPieceLists())
+        {
+            int factor = pieces2.IsWhitePieceList ? 1 : -1;
+            int tmpEval = 0;
+
+            eval += pieceValues[(int)pieces2.TypeOfPieceInList] * factor * pieces2.Count;
+
+        }
+        ChessChallenge.API.PieceList[] pieces = board.GetAllPieceLists();
+
+        for (int i = 0; i < pieces.Length; i++)
+        {
+            int factor = pieces[i].IsWhitePieceList ? 1 : -1;
+            int[][] pieceValueBoard = pieces[i].IsWhitePieceList ? whiteValueBoard[(int)pieces[i].TypeOfPieceInList] : blackValueBoard[(int)pieces[i].TypeOfPieceInList];
+            for (int j = 0; j < pieces[i].Count; j++)
+            {
+                Square square = pieces[i][j].Square;
+                eval += pieceValueBoard[square.Rank][square.File] * factor;
+            }
+            eval += pieceValues[(int)pieces[i].TypeOfPieceInList] * factor * pieces[i].Count;
+        }
+        return eval;
+    }
 }
+                                                                                                                                                                                                                                                        
