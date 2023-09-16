@@ -109,7 +109,7 @@ namespace ChessChallenge.Example
             }
             if (pieceCounter <= 4)
             {
-                maxDepth = 5;
+                maxDepth = 4;
                 if (currentGamestate == GameState.Opening)
                 {
                     Console.WriteLine(board.IsWhiteToMove);
@@ -119,7 +119,7 @@ namespace ChessChallenge.Example
             }
             if (pieceCounter <= 2)
             {
-                maxDepth = 7;
+                maxDepth = 5;
             }
 
             /*

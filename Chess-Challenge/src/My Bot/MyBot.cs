@@ -14,7 +14,7 @@ public class MyBot : IChessBot
     private byte maxDepth = 4;
     private Random rnd = new Random();
 
-    private int[][][] whiteValueBoard = new[]
+    private int[][][] blackValueBoard = new[]
     {
         //none
         new []
@@ -31,7 +31,7 @@ public class MyBot : IChessBot
         //Pawn
         new []
         {
-            new []{  0,  0,  0,  0,  0,  0,  0,  0},
+            new []{ 60, 60, 60, 60, 60, 60, 60, 60},
             new []{ 50, 50, 50, 50, 50, 50, 50, 50},
             new []{ 10, 10, 20, 30, 30, 20, 10, 10},
             new []{  5,  5, 10, 25, 25, 10,  5,  5},
@@ -102,19 +102,19 @@ public class MyBot : IChessBot
         }
     };
 
-    private int[][][] blackValueBoard;
+    private int[][][] whiteValueBoard;
 
     public MyBot()
     {
-        blackValueBoard = new[]
+        whiteValueBoard = new[]
         {
-            whiteValueBoard[0],
-            whiteValueBoard[1].Reverse().ToArray(),
-            whiteValueBoard[2],
-            whiteValueBoard[3].Reverse().ToArray(),
-            whiteValueBoard[4].Reverse().ToArray(),
-            whiteValueBoard[5],
-            whiteValueBoard[6].Reverse().ToArray(),
+            blackValueBoard[0],
+            blackValueBoard[1].Reverse().ToArray(),
+            blackValueBoard[2],
+            blackValueBoard[3].Reverse().ToArray(),
+            blackValueBoard[4].Reverse().ToArray(),
+            blackValueBoard[5],
+            blackValueBoard[6].Reverse().ToArray(),
         };
     }
     
@@ -132,7 +132,7 @@ public class MyBot : IChessBot
         Move[] allMoves = board.GetLegalMoves();
         Move moveToPlay = allMoves[rnd.Next(allMoves.Length-1)];
         int highestValue = 1337420;
-        int pieceCounter = 0;
+        double pieceCounter = 0;
 
         foreach (ChessChallenge.API.PieceList pieces in board.GetAllPieceLists())
         {
@@ -146,13 +146,13 @@ public class MyBot : IChessBot
                     pieceCounter += pieces.Count;
                     break;
                 case PieceType.Bishop:
-                    pieceCounter += pieces.Count;
+                    pieceCounter += pieces.Count*1.5;
                     break;
                 case PieceType.Rook:
-                    pieceCounter += pieces.Count;
+                    pieceCounter += pieces.Count*2;
                     break;
                 case PieceType.Queen:
-                    pieceCounter += pieces.Count;
+                    pieceCounter += pieces.Count*3;
                     break;
                 case PieceType.King:
                     break;
@@ -170,7 +170,7 @@ public class MyBot : IChessBot
         }
         if(pieceCounter <= 2)
         {
-            maxDepth = 7;
+            maxDepth = 6;
         }
 
         /*
@@ -211,7 +211,7 @@ public class MyBot : IChessBot
         {
             Board tmpBoard = Board.CreateBoardFromFEN(board.GetFenString());
             tmpBoard.MakeMove(move);
-            int tmp = CalcMoveAlphaBeta(tmpBoard, -10000, 10000, 0);
+            int tmp = CalcMoveAlphaBeta(tmpBoard, -100000, 100000, 0);
             tmpBoard.UndoMove(move);
             if ((board.IsWhiteToMove && tmp > highestValue) || (!board.IsWhiteToMove && tmp < highestValue) || highestValue == 1337420)
             {
@@ -219,15 +219,15 @@ public class MyBot : IChessBot
                 highestValue = tmp;
             }
         });
-
+        Console.WriteLine(highestValue);
         return moveToPlay;
     }
 
     /*
-    private int CalcMove(Board board, Move move, byte depthCounter)
+    private int CalcMove(Board board, Move move, byte depth)
     {
         board.MakeMove(move);
-        if (depthCounter < maxDepth && !board.IsInCheckmate())
+        if (depth < maxDepth && !board.IsInCheckmate())
         {
             Move[] allMoves = board.GetLegalMoves();
             int highestValue = 1337420;
@@ -235,7 +235,7 @@ public class MyBot : IChessBot
             foreach (Move nextMove in allMoves)
             {
 
-                int tmp = CalcMove(board, nextMove, (byte) (1 + depthCounter));
+                int tmp = CalcMove(board, nextMove, (byte) (1 + depth));
                 if ((board.IsWhiteToMove&&tmp > highestValue) || (!board.IsWhiteToMove && tmp < highestValue) || highestValue == 1337420)
                 {
                     highestValue = tmp;
@@ -251,8 +251,13 @@ public class MyBot : IChessBot
 
     }
     */
+    private int CalcMoveAlphaBeta(Board board, int alpha, int beta, int depthCounter)
+    {
+        if (board.IsInCheckmate())
+        {
+            return board.IsWhiteToMove ? -66666 : 66666;
+        }
 
-    private int CalcMoveAlphaBeta(Board board, int alpha, int beta, int depthCounter) {
         if (depthCounter == maxDepth)
         {
             return EvaluateBoard(board);
@@ -262,7 +267,7 @@ public class MyBot : IChessBot
 
         if (board.IsWhiteToMove)
         {
-            int bestMove = -9999;
+            int bestMove = -99999;
             for (int i = 0; i < newGameMoves.Length; i++)
             {
                 board.MakeMove(newGameMoves[i]);
@@ -278,11 +283,55 @@ public class MyBot : IChessBot
         }
         else
         {
-            var bestMove = 9999;
+            var bestMove = 99999;
             for (var i = 0; i < newGameMoves.Length; i++)
             {
                 board.MakeMove(newGameMoves[i]);
                 bestMove = Math.Min(bestMove, CalcMoveAlphaBeta(board, alpha, beta, 1 + depthCounter));
+                board.UndoMove(newGameMoves[i]);
+                beta = Math.Min(beta, bestMove);
+                if (beta <= alpha)
+                {
+                    return bestMove;
+                }
+            }
+            return bestMove;
+        }
+    }
+    /*
+
+    private int CalcMoveAlphaBeta(Board board, int alpha, int beta, int depth, bool maxPlayer) {
+        if (depth == 0)
+        {
+            return EvaluateBoard(board);
+        }
+
+        Move[] newGameMoves = board.GetLegalMoves();
+
+        if (maxPlayer)
+        {
+            int bestMove = -99999;
+            for (int i = 0; i < newGameMoves.Length; i++)
+            {
+                board.MakeMove(newGameMoves[i]);
+                bestMove = Math.Max(bestMove, CalcMoveAlphaBeta(board, alpha, beta, depth-1, false));
+                board.UndoMove(newGameMoves[i]);
+                alpha = Math.Max(alpha, bestMove);
+                if (beta <= alpha)
+                {
+                    return bestMove;
+                }
+                
+            }
+            return bestMove;
+        }
+        else
+        {
+            int bestMove = 99999;
+            for (int i = 0; i < newGameMoves.Length; i++)
+            {
+                board.MakeMove(newGameMoves[i]);
+                bestMove = Math.Min(bestMove, CalcMoveAlphaBeta(board, alpha, beta, depth-1, true));
                 board.UndoMove(newGameMoves[i]);
                 beta = Math.Min(beta, bestMove);
                 if (beta <= alpha)
@@ -332,21 +381,7 @@ public class MyBot : IChessBot
 
     private int EvaluateBoard(Board board)
     {
-        
-        if (board.IsInCheckmate())
-        {
-            int newFactor = board.IsWhiteToMove ? 1 : -1;
-            return -10000 * newFactor;
-        }
         int eval = 0;
-        foreach (ChessChallenge.API.PieceList pieces2 in board.GetAllPieceLists())
-        {
-            int factor = pieces2.IsWhitePieceList ? 1 : -1;
-            int tmpEval = 0;
-
-            eval += pieceValues[(int)pieces2.TypeOfPieceInList] * factor * pieces2.Count;
-
-        }
         ChessChallenge.API.PieceList[] pieces = board.GetAllPieceLists();
 
         for (int i = 0; i < pieces.Length; i++)
@@ -356,9 +391,8 @@ public class MyBot : IChessBot
             for (int j = 0; j < pieces[i].Count; j++)
             {
                 Square square = pieces[i][j].Square;
-                eval += pieceValueBoard[square.Rank][square.File] * factor;
+                eval += (pieceValueBoard[square.Rank][square.File] + pieceValues[(int)pieces[i][j].PieceType]) * factor;
             }
-            eval += pieceValues[(int)pieces[i].TypeOfPieceInList] * factor * pieces[i].Count;
         }
         return eval;
     }
