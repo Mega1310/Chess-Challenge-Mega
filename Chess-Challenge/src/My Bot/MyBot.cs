@@ -2,6 +2,7 @@
 using ChessChallenge.Chess;
 using System;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Board = ChessChallenge.API.Board;
 using Move = ChessChallenge.API.Move;
@@ -11,9 +12,8 @@ public class MyBot : IChessBot
 {
     // Piece values: null, pawn, knight, bishop, rook, queen, king
     int[] pieceValues = { 0, 100, 300, 325, 500, 900, 10000 };
-    private byte maxDepth = 4;
+    private int maxDepth = 3;
     private Random rnd = new Random();
-
     private int[][][] blackValueBoard = new[]
     {
         //none
@@ -101,6 +101,7 @@ public class MyBot : IChessBot
             new []{ 20, 30, 10,  0,  0, 10, 30, 20}
         }
     };
+    
 
     private int[][][] whiteValueBoard;
 
@@ -117,21 +118,13 @@ public class MyBot : IChessBot
             blackValueBoard[6].Reverse().ToArray(),
         };
     }
-    
-    public enum GameState
-    {
-        Opening,
-        MiddleGame,
-        EndGame
-    }
-
-    private GameState currentGamestate = GameState.Opening;
 
     public Move Think(Board board, Timer timer)
     {
         Move[] allMoves = board.GetLegalMoves();
         Move moveToPlay = allMoves[rnd.Next(allMoves.Length-1)];
         int highestValue = 1337420;
+        /*
         double pieceCounter = 0;
 
         foreach (ChessChallenge.API.PieceList pieces in board.GetAllPieceLists())
@@ -160,51 +153,11 @@ public class MyBot : IChessBot
         }
         if (pieceCounter <= 4)
         {
-            maxDepth = 5;
-            if(currentGamestate == GameState.Opening)
-            {
-                Console.WriteLine(board.IsWhiteToMove);
-                Console.WriteLine("Endgame");
-            }
-            currentGamestate = GameState.EndGame;
+            maxDepth = maxDepth+1;
         }
         if(pieceCounter <= 2)
         {
-            maxDepth = 6;
-        }
-
-        /*
-        foreach (Move move in allMoves)
-        {
-            int tmp = CalcMove(board, move, 0);
-            if ((board.IsWhiteToMove && tmp > highestValue) || (!board.IsWhiteToMove && tmp < highestValue) || highestValue == 1337420)
-            {
-                moveToPlay = move;
-                highestValue = tmp;
-            }
-        */
-        /*
-        Parallel.ForEach(allMoves, move =>
-        {
-            int tmp = CalcMove(Board.CreateBoardFromFEN(board.GetFenString()), move, 0);
-            if ((board.IsWhiteToMove && tmp > highestValue) || (!board.IsWhiteToMove && tmp < highestValue) || highestValue == 1337420)
-            {
-                moveToPlay = move;
-                highestValue = tmp;
-            }
-        });
-        */
-        /*
-        foreach (Move move in allMoves)
-        {
-            board.MakeMove(move);
-            int tmp = CalcMoveAlphaBeta(board, -10000, 10000,0);
-            board.UndoMove(move);
-            if ((board.IsWhiteToMove && tmp > highestValue) || (!board.IsWhiteToMove && tmp < highestValue) || highestValue == 1337420)
-            {
-                moveToPlay = move;
-                highestValue = tmp;
-            }
+            maxDepth = maxDepth+2;
         }
         */
         Parallel.ForEach(allMoves, move =>
@@ -223,39 +176,16 @@ public class MyBot : IChessBot
         return moveToPlay;
     }
 
-    /*
-    private int CalcMove(Board board, Move move, byte depth)
-    {
-        board.MakeMove(move);
-        if (depth < maxDepth && !board.IsInCheckmate())
-        {
-            Move[] allMoves = board.GetLegalMoves();
-            int highestValue = 1337420;
-
-            foreach (Move nextMove in allMoves)
-            {
-
-                int tmp = CalcMove(board, nextMove, (byte) (1 + depth));
-                if ((board.IsWhiteToMove&&tmp > highestValue) || (!board.IsWhiteToMove && tmp < highestValue) || highestValue == 1337420)
-                {
-                    highestValue = tmp;
-                }
-            }
-            board.UndoMove(move);
-            return highestValue;
-        }
-
-        int output = EvaluateBoard(board);
-        board.UndoMove(move);
-        return output;
-
-    }
-    */
     private int CalcMoveAlphaBeta(Board board, int alpha, int beta, int depthCounter)
     {
         if (board.IsInCheckmate())
         {
             return board.IsWhiteToMove ? -66666 : 66666;
+        }
+
+        if (board.IsDraw())
+        {
+            return 0;
         }
 
         if (depthCounter == maxDepth)
@@ -267,7 +197,7 @@ public class MyBot : IChessBot
 
         if (board.IsWhiteToMove)
         {
-            int bestMove = -99999;
+            int bestMove = int.MinValue;
             for (int i = 0; i < newGameMoves.Length; i++)
             {
                 board.MakeMove(newGameMoves[i]);
@@ -283,7 +213,7 @@ public class MyBot : IChessBot
         }
         else
         {
-            var bestMove = 99999;
+            var bestMove = int.MaxValue;
             for (var i = 0; i < newGameMoves.Length; i++)
             {
                 board.MakeMove(newGameMoves[i]);
@@ -298,86 +228,6 @@ public class MyBot : IChessBot
             return bestMove;
         }
     }
-    /*
-
-    private int CalcMoveAlphaBeta(Board board, int alpha, int beta, int depth, bool maxPlayer) {
-        if (depth == 0)
-        {
-            return EvaluateBoard(board);
-        }
-
-        Move[] newGameMoves = board.GetLegalMoves();
-
-        if (maxPlayer)
-        {
-            int bestMove = -99999;
-            for (int i = 0; i < newGameMoves.Length; i++)
-            {
-                board.MakeMove(newGameMoves[i]);
-                bestMove = Math.Max(bestMove, CalcMoveAlphaBeta(board, alpha, beta, depth-1, false));
-                board.UndoMove(newGameMoves[i]);
-                alpha = Math.Max(alpha, bestMove);
-                if (beta <= alpha)
-                {
-                    return bestMove;
-                }
-                
-            }
-            return bestMove;
-        }
-        else
-        {
-            int bestMove = 99999;
-            for (int i = 0; i < newGameMoves.Length; i++)
-            {
-                board.MakeMove(newGameMoves[i]);
-                bestMove = Math.Min(bestMove, CalcMoveAlphaBeta(board, alpha, beta, depth-1, true));
-                board.UndoMove(newGameMoves[i]);
-                beta = Math.Min(beta, bestMove);
-                if (beta <= alpha)
-                {
-                    return bestMove;
-                }
-            }
-            return bestMove;
-        }
-    }
-    /*
-
-    private int EvaluateBoard(Board board)
-    {
-        if (board.IsDraw())
-        {
-            return 0;
-        }
-
-        if (board.IsInCheckmate())
-        {
-            int newFactor = board.IsWhiteToMove ? 1 : -1;
-            return -10000 * newFactor;
-        }
-        int eval = 0;
-        foreach (ChessChallenge.API.PieceList pieces in board.GetAllPieceLists())
-        {
-            int factor = pieces.IsWhitePieceList ? 1 : -1;
-            int tmpEval = 0;
-            
-            eval += pieceValues[(int)pieces.TypeOfPieceInList] * factor * pieces.Count;
-
-        }
-
-        switch (currentGamestate)
-        {
-            case GameState.Opening:
-                break;
-            case GameState.MiddleGame:
-                break;
-            case GameState.EndGame:
-                break;
-        }
-        return eval;
-    }
-    */
 
     private int EvaluateBoard(Board board)
     {
